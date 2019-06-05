@@ -23,16 +23,7 @@ function Append-RtfBlock ($block, $tokenColor)
         }
     }
 
- #   $rtfBuilder.Append($wordBuilder.ToString())
-#    $block = '\u44032?'
-
-    $null = $rtfBuilder.Append("\cf$colorIndex $block")
-
-    if ($block -eq "#테스트입니다.")
-    {
-        [System.Windows.MessageBox]::Show($rtfBuilder.ToString())
-    }
-
+    $null = $rtfBuilder.Append("\cf$colorIndex $wordBuilder")
 }
 
 # Generate an HTML span and append it to HTML string builder
@@ -83,12 +74,7 @@ function Copy-Script
     $rtfBuilder = new-object system.text.stringbuilder
     # Append RTF header
      $null = $rtfBuilder.Append("{\rtf1\fbidis\ansi\ansicpg1252\deff0\deflang1033{\fonttbl{\f0\fnil\fcharset0 $fontName;}}")
-
-#      $null = $rtfBuilder.Append("{\rtf1\fbidis\ansi\ansicpg949\deff1\deflang1042{\fonttbl{\f0\fnil\fcharset0 $fontName;}}")
-
-#    $null = $rtfBuilder.Append("{\rtf1\fbidis\ansi\ansicpg949\deff0\deflang1042{\fonttbl{\f0\fnil\fcharset0 $fontName;}}")
-
-#   $null = $rtfBuilder.Append("{\rtf1\fbidis\ansi\kis94\ansicpg949\deff1\deflang1042{\fonttbl{\f0\fnil\fcharset0 $fontName;}}")
+#    $null = $rtfBuilder.Append("{\rtf1\fbidis\ansi\ansicpg949\deff1\deflang1042{\fonttbl{\f0\fnil\fcharset0 $fontName;}}")
 
     $null = $rtfBuilder.Append("`r`n")
     # Append RTF color table which will contain all Powershell console colors.
@@ -117,8 +103,6 @@ function Copy-Script
     # Append RTF document settings.
     $null = $rtfBuilder.Append('\viewkind4\uc1\pard\f0\fs20 ')
 
-#    [System.Windows.MessageBox]::Show($text)
-    
     $position = 0
     # Iterate over the tokens and set the colors appropriately.
     foreach ($token in $tokens)
@@ -155,22 +139,8 @@ function Copy-Script
     $html = $htmlBuilder.ToString()
     $dataObject.SetText([string]$html, [Windows.TextDataFormat]"Html")
 
-#    [System.Windows.MessageBox]::Show($html)
-
     [Windows.Clipboard]::SetDataObject($dataObject, $true)
     # 'The script has been copied to clipboard.'
 }
-
-Function Copy-ToWord {
-[cmdletbinding()]
-Param(
-[ValidatePattern("\S+")]
-[string[]]$Text = $psise.CurrentFile.Editor.SelectedText,
-[switch]$Colorized
-)
-
-} #end Function
-
-             
 
 Copy-Script
