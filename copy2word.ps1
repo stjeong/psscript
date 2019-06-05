@@ -12,42 +12,18 @@ function Append-RtfBlock ($block, $tokenColor)
     foreach ($ch in $block.ToCharArray())
     {
         $n = [int]$ch
-        if ($n -ge 44032 -and $n -le 55215 )
+        if ($n -ge 255)
         {
             $nText = $n.ToString()
             $null = $wordBuilder.Append("\u$($nText)?")
         }
         else
         {
-            $nText = $n.ToString()
-            if ($nText -ne '\pard')
-            {
-                $null = $wordBuilder.Append($ch)
-            }
+            $null = $wordBuilder.Append($ch)
         }
     }
 
     $null = $rtfBuilder.Append("\cf$colorIndex $wordBuilder")
-}
-
-# Generate an HTML span and append it to HTML string builder
-#
-function Append-HtmlSpan ($block, $tokenColor)
-{
-  if ($tokenColor -eq 'NewLine')
-  {
-    $null = $htmlBuilder.Append("<br>")
-  }
-  else
-  {
-    $block = $block.Replace('&','&amp;').Replace('>','&gt;').Replace('<','&lt;')
-    if (-not $block.Trim())
-    {
-        $block = $block.Replace(' ', '&nbsp;')
-    }
-    $htmlColor = $psise.Options.TokenColors[$tokenColor].ToString().Replace('#FF', '#')
-    $null = $htmlBuilder.Append("<span style='color:$htmlColor'>$block</span>")
-  }
 }
 
 function Copy-Script
@@ -67,12 +43,8 @@ function Copy-Script
     $tokens = [system.management.automation.psparser]::Tokenize($Text, [ref] $errors)
 
     # Set the desired font and font size
-    $fontName = 'Malgun Gothic'
+    $fontName = 'Lucida Console'
     $fontSize = 10
-
-    # Initialize HTML builder.
-    $htmlBuilder = new-object system.text.stringbuilder
-    $null = $htmlBuilder.AppendLine("<p style='MARGIN: 0in 10pt 0in;font-family:$fontname;font-size:$fontSize`pt'>")
 
     # Initialize RTF builder.
     $rtfBuilder = new-object system.text.stringbuilder
@@ -116,38 +88,26 @@ function Copy-Script
 
             $tokenColor = 'Unknown'
             Append-RtfBlock $block $tokenColor
-            Append-HtmlSpan $block $tokenColor
         }
         
         $block = $text.Substring($token.Start, $token.Length)
         $tokenColor = $token.Type.ToString()
         Append-RtfBlock $block $tokenColor
-        Append-HtmlSpan $block $tokenColor
         
         $position = $token.Start + $token.Length
     }
 
-    # Append HTML ending tag.
-    $null = $htmlBuilder.Append("</p>")
-
     # Append RTF ending brace.
     $null = $rtfBuilder.Append('}')
 
-    # Copy console screen buffer contents to clipboard in three formats - text, HTML and RTF.
+    # Copy console screen buffer contents to clipboard in RTF formats.
     #
     $dataObject = New-Object Windows.DataObject
-
-    # $dataObject.SetText([string]$text, [Windows.TextDataFormat]"UnicodeText")
 
     $rtf = $rtfBuilder.ToString()
     $dataObject.SetText([string]$rtf, [Windows.TextDataFormat]"Rtf")
 
-# This prevent from pasting into Powerpoint
-#    $html = $htmlBuilder.ToString()
-#    $dataObject.SetText([string]$html, [Windows.TextDataFormat]"Html")
-
     [Windows.Clipboard]::SetDataObject($dataObject, $true)
-    # 'The script has been copied to clipboard.'
 }
 
 Copy-Script
