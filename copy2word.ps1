@@ -19,7 +19,11 @@ function Append-RtfBlock ($block, $tokenColor)
         }
         else
         {
-            $null = $wordBuilder.Append($ch)
+            $nText = $n.ToString()
+            if ($nText -ne '\pard')
+            {
+                $null = $wordBuilder.Append($ch)
+            }
         }
     }
 
@@ -63,7 +67,7 @@ function Copy-Script
     $tokens = [system.management.automation.psparser]::Tokenize($Text, [ref] $errors)
 
     # Set the desired font and font size
-    $fontName = 'Lucida Console'
+    $fontName = 'Malgun Gothic'
     $fontSize = 10
 
     # Initialize HTML builder.
@@ -73,8 +77,7 @@ function Copy-Script
     # Initialize RTF builder.
     $rtfBuilder = new-object system.text.stringbuilder
     # Append RTF header
-     $null = $rtfBuilder.Append("{\rtf1\fbidis\ansi\ansicpg1252\deff0\deflang1033{\fonttbl{\f0\fnil\fcharset0 $fontName;}}")
-#    $null = $rtfBuilder.Append("{\rtf1\fbidis\ansi\ansicpg949\deff1\deflang1042{\fonttbl{\f0\fnil\fcharset0 $fontName;}}")
+    $null = $rtfBuilder.Append("{\rtf1\fbidis\ansi\ansicpg1252\deff0\deflang1033{\fonttbl{\f0\fnil\fcharset0 $fontName;}}")
 
     $null = $rtfBuilder.Append("`r`n")
     # Append RTF color table which will contain all Powershell console colors.
@@ -101,7 +104,7 @@ function Copy-Script
     $null = $rtfBuilder.Append('}')
     $null = $rtfBuilder.Append("`r`n")
     # Append RTF document settings.
-    $null = $rtfBuilder.Append('\viewkind4\uc1\pard\f0\fs20 ')
+    $null = $rtfBuilder.Append('\viewkind4\uc1\f0\fs20 ')
 
     $position = 0
     # Iterate over the tokens and set the colors appropriately.
@@ -133,11 +136,15 @@ function Copy-Script
     # Copy console screen buffer contents to clipboard in three formats - text, HTML and RTF.
     #
     $dataObject = New-Object Windows.DataObject
-    $dataObject.SetText([string]$text, [Windows.TextDataFormat]"UnicodeText")
+
+    # $dataObject.SetText([string]$text, [Windows.TextDataFormat]"UnicodeText")
+
     $rtf = $rtfBuilder.ToString()
     $dataObject.SetText([string]$rtf, [Windows.TextDataFormat]"Rtf")
-    $html = $htmlBuilder.ToString()
-    $dataObject.SetText([string]$html, [Windows.TextDataFormat]"Html")
+
+# This prevent from pasting into Powerpoint
+#    $html = $htmlBuilder.ToString()
+#    $dataObject.SetText([string]$html, [Windows.TextDataFormat]"Html")
 
     [Windows.Clipboard]::SetDataObject($dataObject, $true)
     # 'The script has been copied to clipboard.'
